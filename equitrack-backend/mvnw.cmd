@@ -1,3 +1,4 @@
+
 <# : batch portion
 @REM ----------------------------------------------------------------------------
 @REM Licensed to the Apache Software Foundation (ASF) under one
@@ -15,7 +16,7 @@
 @REM "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 @REM KIND, either express or implied.  See the License for the
 @REM specific language governing permissions and limitations
-@REM under the License.
+@REM under the License
 @REM ----------------------------------------------------------------------------
 
 @REM ----------------------------------------------------------------------------
@@ -187,3 +188,4 @@ try {
 }
 
 Write-Output "MVN_CMD=$MAVEN_HOME/bin/$MVN_CMD"
+

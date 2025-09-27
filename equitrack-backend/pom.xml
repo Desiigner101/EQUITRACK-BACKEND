@@ -12,7 +12,7 @@
 	<artifactId>equitrack-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Equitrack Backend</name>
-	<description>A Spring Boot web application that helps users monitor, analyze, and manage the flow of their finances.</description>
+	<description>A Spring Boot web application that helps users monitor, analyze, and manage the flow of their finances</description>
 	<url/>
 	<licenses>
 		<license/>
