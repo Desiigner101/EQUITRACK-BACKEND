@@ -9,6 +9,7 @@ import io.equitrack.repository.ExpenseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -78,6 +79,20 @@ public class ExpenseService {
             throw new RuntimeException("Unauthorized to delete this expense!");
         }
         expenseRepository.delete(entity);
+    }
+
+    //get or retrieve 5 expenses for current user
+    public List<ExpenseDTO> getLatest5ExpensesForCurrentUser(){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<ExpenseEntity> list = expenseRepository.findTop5ByProfileIdOrderByDateDesc(profile.getId());
+        return list.stream().map(this::toDTO).toList();
+    }
+
+    //get  total expenses of current user
+    public BigDecimal getTotalExpensesForCurrentUser(){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        BigDecimal total = expenseRepository.findTotalExpenseByProfileId(profile.getId());
+        return total != null ? total: BigDecimal.ZERO;
     }
 
 }
