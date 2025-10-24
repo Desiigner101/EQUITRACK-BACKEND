@@ -11,6 +11,7 @@ import io.equitrack.repository.IncomeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -78,6 +79,20 @@ public class IncomeService {
             throw new RuntimeException("Unauthorized to delete this income!");
         }
         incomeRepository.delete(entity);
+    }
+
+    //get or retrieve 5 income for current user
+    public List<IncomeDTO> getLatest5IncomeForCurrentUser(){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<IncomeEntity> list = incomeRepository.findTop5ByProfileIdOrderByDateDesc(profile.getId());
+        return list.stream().map(this::toDTO).toList();
+    }
+
+    //get  total income of current user
+    public BigDecimal getTotalIncomeForCurrentUser(){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        BigDecimal total = incomeRepository.findTotalExpenseByProfileId(profile.getId());
+        return total != null ? total: BigDecimal.ZERO;
     }
 
 }
