@@ -97,7 +97,7 @@ public class IncomeService {
     }
 
     //filter incomes
-    public List<IncomeDTO> filterExpenses(LocalDate startDate, LocalDate endDate, String keyword, Sort sort){
+    public List<IncomeDTO> filterIncomes(LocalDate startDate, LocalDate endDate, String keyword, Sort sort){
         ProfileEntity profile = profileService.getCurrentProfile();
         List<IncomeEntity> list = incomeRepository.findByProfileIdAndDateBetweenAndNameContainingIgnoreCase(profile.getId(), startDate, endDate, keyword, sort);
         return list.stream().map(this::toDTO).toList();
