@@ -17,6 +17,8 @@ import lombok.NoArgsConstructor;    // Generates no-argument constructor
 @Builder
 public class AuthDTO {
 
+    private String fullName;
+
     // User's email address - used for login and account identification
     private String email;
 
