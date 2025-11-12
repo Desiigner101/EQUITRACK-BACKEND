@@ -15,44 +15,56 @@ import sibModel.SendSmtpEmailTo;
 import java.util.Collections;
 
 @Service
-@Slf4j
+@Slf4j  // Logger for tracking email operations
 public class EmailService {
 
+    // Inject Brevo (SendinBlue) API key from application.properties
     @Value("${brevo.api.key}")
     private String brevoApiKey;
 
-    @Async
+    /**
+     * ASYNCHRONOUSLY SEND EMAIL USING BREVO API
+     *
+     * This method sends emails in the background without blocking the main application
+     * Used for: Account activation, password reset, notifications
+     *
+     * @param to      - Recipient email address
+     * @param subject - Email subject line
+     * @param body    - Email content (will be wrapped in HTML)
+     */
+    @Async  // Runs in background thread - doesn't block user requests
     public void sendEmail(String to, String subject, String body){
         try{
-            // Configure Brevo API client
+            // --- STEP 1: CONFIGURE BREVO API CLIENT ---
             ApiClient defaultClient = Configuration.getDefaultApiClient();
             ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
-            apiKey.setApiKey(brevoApiKey);
+            apiKey.setApiKey(brevoApiKey);  // Set API key for authentication
 
-            // Create the API instance
+            // --- STEP 2: CREATE EMAIL API INSTANCE ---
             TransactionalEmailsApi api = new TransactionalEmailsApi();
 
-            // Build the email
+            // --- STEP 3: BUILD EMAIL MESSAGE ---
             SendSmtpEmail email = new SendSmtpEmail();
 
-            // Set sender
+            // Set sender information
             email.sender(new SendSmtpEmailSender()
-                    .name("EquiTrack")
-                    .email("desiigner4074@gmail.com"));
+                    .name("EquiTrack")              // Display name
+                    .email("desiigner4074@gmail.com"));  // From address
 
-            // Set recipient
+            // Set recipient (supports multiple recipients)
             email.to(Collections.singletonList(
                     new SendSmtpEmailTo().email(to)));
 
-            // Set subject and content
+            // Set email subject and HTML content
             email.subject(subject);
             email.htmlContent("<html><body><p>" + body + "</p></body></html>");
 
-            // Send the email
+            // --- STEP 4: SEND EMAIL ---
             api.sendTransacEmail(email);
             log.info("✅ Email sent successfully to: {}", to);
 
         } catch(Exception e){
+            // Log error but don't crash the application
             log.error("❌ Failed to send email to {}: {}", to, e.getMessage());
         }
     }
