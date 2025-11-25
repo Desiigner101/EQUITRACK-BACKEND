@@ -18,7 +18,7 @@ public class IncomeController {
     private final IncomeService incomeService;  // Connects to business logic layer - this is where actual work happens
 
     // When client POSTs new income data to /incomes
-    @PostMapping
+    @PostMapping("/all")
     public ResponseEntity<IncomeDTO> addIncome(@RequestBody IncomeDTO dto){
         // incomeService.addIncome() will validate data, check user permissions, save to database
         IncomeDTO saved = incomeService.addIncome(dto);

@@ -12,7 +12,8 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-public class ProfileController {
+public class
+ProfileController {
 
     private final ProfileService profileService; // Handles user authentication and profile management
 

@@ -11,7 +11,10 @@ import sibApi.TransactionalEmailsApi;
 import sibModel.SendSmtpEmail;
 import sibModel.SendSmtpEmailSender;
 import sibModel.SendSmtpEmailTo;
+import sibModel.SendSmtpEmailAttachment;
+import java.util.Base64;
 
+import java.util.Base64;
 import java.util.Collections;
 
 @Service
@@ -66,6 +69,55 @@ public class EmailService {
         } catch(Exception e){
             // Log error but don't crash the application
             log.error("❌ Failed to send email to {}: {}", to, e.getMessage());
+        }
+    }
+
+    /**
+     * NEW METHOD: Send email with Excel attachment
+     *
+     * @param to       - Recipient email
+     * @param subject  - Email subject
+     * @param body     - Email body (HTML)
+     * @param excelBytes - Excel file as byte array
+     * @param filename - Attachment filename
+     */
+    @Async
+    public void sendEmailWithExcel(String to, String subject, String body, byte[] excelBytes, String filename){
+        try{
+            // Configure Brevo API
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            ApiKeyAuth apiKey = (ApiKeyAuth) defaultClient.getAuthentication("api-key");
+            apiKey.setApiKey(brevoApiKey);
+
+            TransactionalEmailsApi api = new TransactionalEmailsApi();
+            SendSmtpEmail email = new SendSmtpEmail();
+
+            // Set sender
+            email.sender(new SendSmtpEmailSender()
+                    .name("EquiTrack")
+                    .email("desiigner4074@gmail.com"));
+
+            // Set recipient
+            email.to(Collections.singletonList(
+                    new SendSmtpEmailTo().email(to)));
+
+            // Set subject and body
+            email.subject(subject);
+            email.htmlContent(body);
+
+            // Add Excel attachment (convert to Base64)
+            SendSmtpEmailAttachment attachment = new SendSmtpEmailAttachment();
+            attachment.setName(filename);
+            attachment.setContent(Base64.getEncoder().encodeToString(excelBytes).getBytes());
+            email.setAttachment(Collections.singletonList(attachment));
+
+            // Send email
+            api.sendTransacEmail(email);
+            log.info("✅ Email with Excel sent successfully to: {}", to);
+
+        } catch(Exception e){
+            log.error("❌ Failed to send email with Excel to {}: {}", to, e.getMessage());
+            throw new RuntimeException("Failed to send email", e);
         }
     }
 }
