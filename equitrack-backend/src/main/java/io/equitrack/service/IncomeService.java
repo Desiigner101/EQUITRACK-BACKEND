@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -141,5 +142,18 @@ public class IncomeService {
         List<IncomeEntity> list = incomeRepository.findByProfileIdAndDateBetweenAndNameContainingIgnoreCase(
                 profile.getId(), startDate, endDate, keyword, sort);
         return list.stream().map(this::toDTO).toList();
+    }
+
+    /**
+     * GET ALL INCOMES FOR CURRENT USER (ALL MONTHS)
+     * Used for: Line charts, historical analysis, income trends
+     * Returns all income records across all time periods
+     */
+    public List<IncomeDTO> getAllIncomesForCurrentUser() {
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<IncomeEntity> incomes = incomeRepository.findByProfileIdOrderByDateDesc(profile.getId());
+        return incomes.stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 }

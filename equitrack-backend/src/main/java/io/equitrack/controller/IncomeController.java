@@ -26,6 +26,12 @@ public class IncomeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<List<IncomeDTO>> getAllIncomes(){
+        List<IncomeDTO> allIncomes = incomeService.getAllIncomesForCurrentUser();
+        return ResponseEntity.ok(allIncomes);
+    }
+
     // When client GETs /incomes - returns list of incomes for current user this month
     @GetMapping
     public ResponseEntity<List<IncomeDTO>> getIncomes(){
@@ -43,4 +49,5 @@ public class IncomeController {
         // Returns HTTP 204 (No Content) - successful deletion with empty response body
         return ResponseEntity.noContent().build();
     }
+
 }

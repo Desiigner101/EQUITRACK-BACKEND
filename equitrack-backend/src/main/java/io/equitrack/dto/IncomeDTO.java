@@ -31,6 +31,8 @@ public class IncomeDTO {
     // Category name for display purposes (e.g., "Salary", "Business", "Investments")
     private String categoryName;
 
+    private String type = "income";
+
     // Category database ID for backend processing and relationships
     private Long categoryId;
 

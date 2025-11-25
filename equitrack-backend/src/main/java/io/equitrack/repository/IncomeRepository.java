@@ -1,12 +1,12 @@
 package io.equitrack.repository;
 
 import io.equitrack.entity.IncomeEntity;
-import org.springframework.data.domain.Sort;          // Para sa pag-sort sa results
-import org.springframework.data.jpa.repository.JpaRepository; // Base CRUD operations
-import org.springframework.data.jpa.repository.Query; // Para sa custom nga queries
-import org.springframework.data.repository.query.Param; // Para sa named parameters
-import java.math.BigDecimal;                     // Para sa precise nga money calculations
-import java.time.LocalDate;                      // Para sa date without time
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -19,7 +19,7 @@ public interface IncomeRepository extends JpaRepository<IncomeEntity, Long> {
     /**
      * GET ALL INCOMES FOR USER, NEWEST FIRST / Kuhaa tanang kita sa user, pinakabag-o una
      * SQL: SELECT * FROM tbl_incomes WHERE profile_id = ? ORDER BY date DESC
-     * Used in: Income history page, transaction lists
+     * Used in: Income history page, transaction lists, LINE CHARTS
      */
     List<IncomeEntity> findByProfileIdOrderByDateDesc(Long profileId);
 
