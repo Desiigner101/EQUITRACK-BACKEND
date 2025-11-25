@@ -5,6 +5,7 @@ import lombok.*;                          // Lombok: reduces boilerplate code
 import org.hibernate.annotations.CreationTimestamp;  // Auto-set creation timestamp
 import org.hibernate.annotations.UpdateTimestamp;    // Auto-update modification timestamp
 import java.time.LocalDateTime;           // Date with time (audit timestamps)
+import java.util.List;                    // For one-to-many relationships
 
 /**
  * JPA Entity representing the 'tbl_profiles' table in the database
@@ -42,6 +43,15 @@ public class ProfileEntity {
     private Boolean isActive;            // Account activation status: false=inactive, true=active
 
     private String activationToken;      // Unique token for email verification
+
+    /**
+     * One-to-Many relationship: One profile can have multiple wallets
+     * mappedBy = "profile" references the 'profile' field in WalletEntity
+     * cascade = CascadeType.ALL means operations on profile affect wallets
+     * orphanRemoval = true deletes wallets when removed from collection
+     */
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<WalletEntity> wallets;  // Collection of all wallets owned by this user
 
     /**
      * JPA Lifecycle Callback - runs automatically before entity is persisted
