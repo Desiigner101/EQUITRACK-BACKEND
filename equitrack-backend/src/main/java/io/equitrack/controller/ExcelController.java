@@ -3,6 +3,7 @@ package io.equitrack.controller;
 import io.equitrack.service.ExcelService;
 import io.equitrack.service.ProfileService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -13,22 +14,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1.0")
+@RequestMapping("/")
 @RequiredArgsConstructor
+@Slf4j
+@CrossOrigin(origins = "http://localhost:3000")
 public class ExcelController {
 
     private final ExcelService excelService;
-    private final ProfileService profileService;  // ADD THIS
+    private final ProfileService profileService;
 
-    /**
-     * Download income as Excel file
-     */
-    @GetMapping("/excel/download/income")
+    @GetMapping(value = "excel/download/income",
+            produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     public ResponseEntity<ByteArrayResource> downloadIncomeExcel() {
         try {
+            log.info("📥 Download income excel request received");
+
             Long profileId = profileService.getCurrentProfile().getId();
+            log.info("👤 Profile ID: {}", profileId);
 
             byte[] excelBytes = excelService.generateIncomeExcel(profileId);
+            log.info("✅ Excel generated: {} bytes", excelBytes.length);
+
             ByteArrayResource resource = new ByteArrayResource(excelBytes);
 
             return ResponseEntity.ok()
@@ -37,19 +43,23 @@ public class ExcelController {
                     .contentLength(excelBytes.length)
                     .body(resource);
 
+        } catch (SecurityException se) {
+            log.error("❌ Unauthorized: ", se);
+            return ResponseEntity.status(401).build();
         } catch (Exception e) {
+            log.error("❌ Error downloading excel: ", e);
             return ResponseEntity.internalServerError().build();
         }
     }
 
-    /**
-     * Email income Excel to user
-     */
-    @GetMapping("/email/income-excel")
+    @GetMapping("email/income-excel")
     public ResponseEntity<Map<String, Object>> emailIncomeExcel() {
         try {
+            log.info("📧 Email income excel request received");
+
             Long profileId = profileService.getCurrentProfile().getId();
             String userEmail = profileService.getCurrentProfile().getEmail();
+            log.info("👤 Sending to: {} (Profile ID: {})", userEmail, profileId);
 
             excelService.sendIncomeEmail(userEmail, profileId);
 
@@ -59,12 +69,26 @@ public class ExcelController {
 
             return ResponseEntity.ok(response);
 
+        } catch (SecurityException se) {
+            log.error("❌ Unauthorized: ", se);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Unauthorized");
+            return ResponseEntity.status(401).body(response);
         } catch (Exception e) {
+            log.error("❌ Error emailing excel: ", e);
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "Failed to email income details");
 
             return ResponseEntity.status(500).body(response);
         }
+    }
+
+    @GetMapping("excel/test")
+    public ResponseEntity<String> test() {
+        log.info("🧪 Test endpoint hit!");
+        return ResponseEntity.ok("Excel controller is working!");
     }
 }

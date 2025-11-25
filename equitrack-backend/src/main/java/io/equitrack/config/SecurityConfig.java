@@ -3,6 +3,7 @@ package io.equitrack.config;
 import io.equitrack.security.JwtRequestFilter;
 import io.equitrack.service.AppUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +25,7 @@ import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final AppUserDetailsService appUserDetailsService;
@@ -34,14 +36,22 @@ public class SecurityConfig {
         httpSecurity
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        // Public endpoints that don't require authentication
-                        .requestMatchers("/status", "/health", "/register", "/activate", "/login",
-                                "/excel/**", "/email/**").permitAll()
-                        // All other endpoints require authentication
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> {
+                    log.info("🔒 Configuring security rules...");
+                    auth
+                            // Public endpoints
+                            .requestMatchers("/status", "/health", "/register", "/activate", "/login").permitAll()
+                            // Try matching with full path including context
+                            .requestMatchers("/api/v1.0/excel/**", "/api/v1.0/email/**").permitAll()
+                            // Also try without context path
+                            .requestMatchers("/excel/**", "/email/**").permitAll()
+                            // All other endpoints require authentication
+                            .anyRequest().authenticated();
+                })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+
+        log.info("✅ Security filter chain configured");
         return httpSecurity.build();
     }
 
@@ -56,10 +66,13 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        configuration.setExposedHeaders(List.of("Content-Disposition"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
+        log.info("✅ CORS configured with exposed headers: Content-Disposition");
         return source;
     }
 
