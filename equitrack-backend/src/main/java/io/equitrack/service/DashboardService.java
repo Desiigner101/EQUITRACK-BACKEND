@@ -21,6 +21,7 @@ public class DashboardService {
     private final IncomeService incomeService;
     private final ExpenseService expenseService;
     private final ProfileService profileService;
+    private final WalletService walletService;
 
     /**
      * AGGREGATES ALL DASHBOARD DATA INTO SINGLE RESPONSE
@@ -31,6 +32,9 @@ public class DashboardService {
     public Map<String, Object> getDashboardData(){
         // Get current user for data isolation
         ProfileEntity profile = profileService.getCurrentProfile();
+
+        // Extract profile ID once to avoid repeated method calls
+        Long profileId = profile.getId();
 
         // Use LinkedHashMap to maintain response order
         Map<String, Object> returnValue = new LinkedHashMap<>();
@@ -50,7 +54,7 @@ public class DashboardService {
                         latestIncomes.stream().map(income ->
                                 RecentTransactionDTO.builder()
                                         .id(income.getId())
-                                        .profileId(profile.getId())
+                                        .profileId(profileId)  // Use the extracted profileId
                                         .icon(income.getIcon())
                                         .name(income.getName())
                                         .amount(income.getAmount())
@@ -64,7 +68,7 @@ public class DashboardService {
                         latestExpenses.stream().map(expense ->
                                 RecentTransactionDTO.builder()
                                         .id(expense.getId())
-                                        .profileId(profile.getId())
+                                        .profileId(profileId)  // Use the extracted profileId
                                         .icon(expense.getIcon())
                                         .name(expense.getName())
                                         .amount(expense.getAmount())
@@ -98,6 +102,12 @@ public class DashboardService {
         // Individual totals for detailed breakdown
         returnValue.put("totalIncome", incomeService.getTotalIncomeForCurrentUser());
         returnValue.put("totalExpense", expenseService.getTotalExpensesForCurrentUser());
+
+        /**
+         * WALLET DATA - NEW FEATURE
+         */
+        returnValue.put("wallets", walletService.getActiveWallets(profileId));
+        returnValue.put("totalWalletBalance", walletService.getTotalBalance(profileId));
 
         /**
          * RECENT ACTIVITY DATA
