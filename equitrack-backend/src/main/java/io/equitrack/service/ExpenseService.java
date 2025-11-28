@@ -151,4 +151,15 @@ public class ExpenseService {
         List<ExpenseEntity> list = expenseRepository.findByProfileIdAndDate(profileId, date);
         return list.stream().map(this::toDTO).toList();
     }
+
+    /**
+     * GET ALL EXPENSES FOR CURRENT USER
+     * Returns complete expense history (no date filtering)
+     * Sorted by date in descending order (newest first)
+     */
+    public List<ExpenseDTO> getAllExpensesForCurrentUser(){
+        ProfileEntity profile = profileService.getCurrentProfile();
+        List<ExpenseEntity> list = expenseRepository.findByProfileIdOrderByDateDesc(profile.getId());
+        return list.stream().map(this::toDTO).toList();
+    }
 }

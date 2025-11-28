@@ -1,43 +1,52 @@
 package io.equitrack.controller;
 
-// DTO and Service imports
-import io.equitrack.dto.ExpenseDTO; // Data transfer object for expense information
-import io.equitrack.service.ExpenseService; // Business logic for expense operations
+import io.equitrack.dto.ExpenseDTO;
+import io.equitrack.service.ExpenseService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-// Spring and Lombok imports
-import lombok.RequiredArgsConstructor; // Auto-generates constructor
-import org.springframework.http.HttpStatus; // HTTP status codes
-import org.springframework.http.ResponseEntity; // HTTP response wrapper
-import org.springframework.web.bind.annotation.*; // Web mapping annotations
+import java.util.List;
 
-// Java util imports
-import java.util.List; // Collection for expense lists
-
-@RestController // Handles REST API requests
-@RequiredArgsConstructor // Auto-injects dependencies
-@RequestMapping("/expenses") // Base path for all expense endpoints
+@RestController  // Makes this class handle web requests and return JSON responses automatically
+@RequestMapping("/expenses")  // All URLs start with /expenses - this is the API endpoint
+@RequiredArgsConstructor  // Automatically creates constructor to inject ExpenseService dependency
 public class ExpenseController {
 
-    private final ExpenseService expenseService; // Service nga mo-manage sa expense operations
+    private final ExpenseService expenseService;  // Connects to business logic layer - this is where actual work happens
 
-    // CREATE - Add new expense record
-    @PostMapping
+    // When client POSTs new expense data to /expenses/all
+    @PostMapping("/all")
     public ResponseEntity<ExpenseDTO> addExpense(@RequestBody ExpenseDTO dto){
-        ExpenseDTO saved = expenseService.addExpense(dto); // Save the new expense
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved); // Return 201 status
+        // expenseService.addExpense() will validate data, check user permissions, save to database
+        ExpenseDTO saved = expenseService.addExpense(dto);
+        // Returns HTTP 201 (Created) with the saved expense including generated ID and timestamps
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    // READ - Get current month's expenses
+    @GetMapping("/all")
+    public ResponseEntity<List<ExpenseDTO>> getAllExpenses(){
+        List<ExpenseDTO> allExpenses = expenseService.getAllExpensesForCurrentUser();
+        return ResponseEntity.ok(allExpenses);
+    }
+
+    // When client GETs /expenses - returns list of expenses for current user this month
     @GetMapping
     public ResponseEntity<List<ExpenseDTO>> getExpenses(){
-        List<ExpenseDTO> expenses = expenseService.getCurrentMonthExpensesForCurrentUser(); // Kuhaa current month expenses
-        return ResponseEntity.ok(expenses); // Return 200 OK with expense list
+        // expenseService automatically filters by current logged-in user and current month
+        List<ExpenseDTO> expenses = expenseService.getCurrentMonthExpensesForCurrentUser();
+        // Returns HTTP 200 (OK) with JSON array of expense objects
+        return ResponseEntity.ok(expenses);
     }
 
-    // DELETE - Remove expense by ID
+    // When client DELETEs /expenses/{id} - removes specific expense record
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteExpense(@PathVariable Long id){
-        expenseService.deleteExpense(id); // Delete the expense record
-        return ResponseEntity.noContent().build(); // Return 204 No Content (successful delete)
+        // expenseService checks if user owns this expense, then deletes from database
+        expenseService.deleteExpense(id);
+        // Returns HTTP 204 (No Content) - successful deletion with empty response body
+        return ResponseEntity.noContent().build();
     }
+
 }

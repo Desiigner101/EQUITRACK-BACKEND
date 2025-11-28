@@ -105,10 +105,10 @@ public class EmailService {
             email.subject(subject);
             email.htmlContent(body);
 
-            // Add Excel attachment (convert to Base64)
+            // Add Excel attachment (Base64 encoded bytes)
             SendSmtpEmailAttachment attachment = new SendSmtpEmailAttachment();
             attachment.setName(filename);
-            attachment.setContent(Base64.getEncoder().encodeToString(excelBytes).getBytes());
+            attachment.setContent(Base64.getEncoder().encode(excelBytes)); // ✅ Returns byte[]
             email.setAttachment(Collections.singletonList(attachment));
 
             // Send email

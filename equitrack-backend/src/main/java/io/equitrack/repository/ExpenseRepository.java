@@ -64,4 +64,5 @@ public interface ExpenseRepository extends JpaRepository<ExpenseEntity, Long> {
      * Used in: Daily expense tracking, calendar views
      */
     List<ExpenseEntity> findByProfileIdAndDate(Long profileId, LocalDate date);
+
 }
