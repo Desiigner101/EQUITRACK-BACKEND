@@ -86,6 +86,69 @@ public class ExcelController {
         }
     }
 
+    @GetMapping(value = "excel/download/expense",
+            produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    public ResponseEntity<ByteArrayResource> downloadExpenseExcel() {
+        try {
+            log.info("📥 Download expense excel request received");
+
+            Long profileId = profileService.getCurrentProfile().getId();
+            log.info("👤 Profile ID: {}", profileId);
+
+            byte[] excelBytes = excelService.generateExpenseExcel(profileId);
+            log.info("✅ Excel generated: {} bytes", excelBytes.length);
+
+            ByteArrayResource resource = new ByteArrayResource(excelBytes);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=expense_details.xlsx")
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .contentLength(excelBytes.length)
+                    .body(resource);
+
+        } catch (SecurityException se) {
+            log.error("❌ Unauthorized: ", se);
+            return ResponseEntity.status(401).build();
+        } catch (Exception e) {
+            log.error("❌ Error downloading excel: ", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("email/expense-excel")
+    public ResponseEntity<Map<String, Object>> emailExpenseExcel() {
+        try {
+            log.info("📧 Email expense excel request received");
+
+            Long profileId = profileService.getCurrentProfile().getId();
+            String userEmail = profileService.getCurrentProfile().getEmail();
+            log.info("👤 Sending to: {} (Profile ID: {})", userEmail, profileId);
+
+            excelService.sendExpenseEmail(userEmail, profileId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Expense details sent to " + userEmail + " successfully");
+
+            return ResponseEntity.ok(response);
+
+        } catch (SecurityException se) {
+            log.error("❌ Unauthorized: ", se);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Unauthorized");
+            return ResponseEntity.status(401).body(response);
+        } catch (Exception e) {
+            log.error("❌ Error emailing excel: ", e);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Failed to email expense details");
+
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
     @GetMapping("excel/test")
     public ResponseEntity<String> test() {
         log.info("🧪 Test endpoint hit!");
