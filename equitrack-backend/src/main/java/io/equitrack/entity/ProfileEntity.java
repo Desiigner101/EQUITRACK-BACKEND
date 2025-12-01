@@ -33,6 +33,11 @@ public class ProfileEntity {
 
     private String profileImageUrl;      // Optional: URL to user's avatar/profile picture
 
+    private String phone;                // User's phone number (optional)
+
+    @Column(length = 500)                // Max length for bio text
+    private String bio;                  // User's bio/description (optional)
+
     @Column(updatable = false)           // Cannot be modified after creation
     @CreationTimestamp                   // Auto-set when user registers
     private LocalDateTime createdAt;     // When user account was created
@@ -47,7 +52,7 @@ public class ProfileEntity {
     /**
      * One-to-Many relationship: One profile can have multiple wallets
      * mappedBy = "profile" references the 'profile' field in WalletEntity
-     * cascade = CascadeType.ALL means operations on profile affect wallets
+     * cascade = CascadeType. ALL means operations on profile affect wallets
      * orphanRemoval = true deletes wallets when removed from collection
      */
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)

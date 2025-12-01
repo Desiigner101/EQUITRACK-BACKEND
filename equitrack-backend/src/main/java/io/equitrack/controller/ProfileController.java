@@ -68,4 +68,18 @@ ProfileController {
         ProfileDTO profileDTO = profileService.getPublicProfile(null);
         return ResponseEntity.ok(profileDTO);
     }
+
+    // allows users to modify their information
+    @PutMapping("/profile")
+    public ResponseEntity<ProfileDTO> updateProfile(@RequestBody ProfileDTO profileDTO) {
+        try {
+            // profileService.updateProfile() will get current user and update their info
+            ProfileDTO updatedProfile = profileService.updateProfile(profileDTO);
+            // Returns (OK) with updated profile data
+            return ResponseEntity.ok(updatedProfile);
+        } catch (Exception e) {
+            // Handle any errors during update
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
 }
