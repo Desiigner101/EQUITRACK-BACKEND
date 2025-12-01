@@ -32,6 +32,9 @@ public class ProfileDTO {
     // URL to user's profile picture/avatar for personalization
     private String profileImageUrl;
 
+    private String phone;
+    private String bio;
+
     // Timestamp when user account was created (auto-set by system)
     private LocalDateTime createdAt;
 

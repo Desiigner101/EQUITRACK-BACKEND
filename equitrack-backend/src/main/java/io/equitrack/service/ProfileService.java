@@ -93,6 +93,8 @@ public class ProfileService {
                 .id(profileEntity.getId())
                 .fullName(profileEntity.getFullName())
                 .email(profileEntity.getEmail())
+                .phone(profileEntity.getPhone())
+                .bio(profileEntity.getBio())
                 .profileImageUrl(profileEntity.getProfileImageUrl())
                 .createdAt(profileEntity.getCreatedAt())
                 .updatedAt(profileEntity.getUpdatedAt())
@@ -162,6 +164,8 @@ public class ProfileService {
                 .id(currentUser.getId())
                 .fullName(currentUser.getFullName())
                 .email(currentUser.getEmail())
+                .phone(currentUser.getPhone())
+                .bio(currentUser.getBio())
                 .profileImageUrl(currentUser.getProfileImageUrl())
                 .createdAt(currentUser.getCreatedAt())
                 .updatedAt(currentUser.getUpdatedAt())
@@ -193,5 +197,36 @@ public class ProfileService {
             // Authentication failed - invalid credentials
             throw new RuntimeException("Invalid email or password");
         }
+    }
+
+    /**
+     *    Updates profile information
+     * 1. Gets current authenticated user
+     * 2. Updates only allowed fields (NOT email or password)
+     * 3. Saves changes to database
+     * 4. Returns updated profile data
+     */
+    public ProfileDTO updateProfile(ProfileDTO profileDTO) {
+        ProfileEntity currentProfile = getCurrentProfile();
+
+        // Update fullName
+        if (profileDTO.getFullName() != null && !profileDTO.getFullName().isEmpty()) {
+            currentProfile.setFullName(profileDTO.getFullName());
+        }
+        // Update profileImageUrl
+        if (profileDTO.getProfileImageUrl() != null) {
+            currentProfile.setProfileImageUrl(profileDTO.getProfileImageUrl());
+        }
+        // Update phone
+        if (profileDTO.getPhone() != null) {
+            currentProfile.setPhone(profileDTO.getPhone());
+        }
+        // Update bio
+        if (profileDTO.getBio() != null) {
+            currentProfile.setBio(profileDTO.getBio());
+        }
+        // Save and return
+        ProfileEntity updatedProfile = profileRepository.save(currentProfile);
+        return toDTO(updatedProfile);
     }
 }
