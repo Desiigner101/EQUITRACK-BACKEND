@@ -1,5 +1,6 @@
 package io.equitrack.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -22,19 +23,21 @@ public class BudgetEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", nullable = false)
-    private ProfileEntity profile;  // Whose budget is this?
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private ProfileEntity profile;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
-    private CategoryEntity category;  // Budget for which category?
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private CategoryEntity category;
 
     @Column(nullable = false)
-    private BigDecimal limitAmount;  // Max spending amount
+    private BigDecimal limitAmount;
 
     @Column(nullable = false)
-    private String period;  // "MONTHLY" or "WEEKLY"
+    private String period;
 
-    private String description;  // Optional: "Groceries budget for family"
+    private String description;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
