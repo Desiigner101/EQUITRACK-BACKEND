@@ -39,12 +39,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     log.info("🔒 Configuring security rules...");
                     auth
-                            // Public endpoints
+                            // Public endpoints - NO /api/v1.0 prefix (context-path handles it)
                             .requestMatchers("/status", "/health", "/register", "/activate", "/login").permitAll()
-                            // Try matching with full path including context
-                            .requestMatchers("/api/v1.0/excel/**", "/api/v1.0/email/**").permitAll()
-                            // Also try without context path
+                            // Excel and Email endpoints
                             .requestMatchers("/excel/**", "/email/**").permitAll()
+                            // Wallet endpoints - require authentication
+                            .requestMatchers("/wallets/**").authenticated()
+                            // Budget endpoints - require authentication
+                            .requestMatchers("/budgets/**").authenticated()
                             // All other endpoints require authentication
                             .anyRequest().authenticated();
                 })
