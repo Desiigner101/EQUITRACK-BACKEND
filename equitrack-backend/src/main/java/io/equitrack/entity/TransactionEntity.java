@@ -1,5 +1,6 @@
 package io.equitrack.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;  // ✅ ADDED
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,10 +35,12 @@ public abstract class TransactionEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
+    @JsonBackReference("category-transactions")  // ✅ FIXED
     private CategoryEntity category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", nullable = false)
+    @JsonBackReference("profile-transactions")  // ✅ FIXED
     private ProfileEntity profile;
 
     protected TransactionEntity() {

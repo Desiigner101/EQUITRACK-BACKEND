@@ -1,5 +1,6 @@
 package io.equitrack.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;  // ✅ ADDED
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +10,10 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity                                  // Marks this class as a JPA entity
-@Table(name = "tbl_wallets")            // Maps to 'tbl_profiles' table in database
-@Data                                    // Lombok: generates getters, setters, toString, equals, hashCode
-@AllArgsConstructor                      // Lombok: constructor with all fields // Lombok: empty constructor (JPA requirement)
+@Entity
+@Table(name = "tbl_wallets")
+@Data
+@AllArgsConstructor
 @Builder
 public class WalletEntity {
 
@@ -22,6 +23,7 @@ public class WalletEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", nullable = false)
+    @JsonBackReference("profile-wallets")  // ✅ FIXED
     private ProfileEntity profile;
 
     @Column(nullable = false, precision = 19, scale = 2)
@@ -34,7 +36,7 @@ public class WalletEntity {
     private Boolean isActive;
 
     @Column(name = "wallet_type", length = 50)
-    private String walletType; // e.g., "SAVINGS", "MAIN", "INVESTMENT"
+    private String walletType;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -42,7 +44,6 @@ public class WalletEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Constructors
     public WalletEntity() {
         this.balance = BigDecimal.ZERO;
         this.currency = "PHP";
@@ -57,7 +58,6 @@ public class WalletEntity {
         this.isActive = true;
     }
 
-    // Lifecycle callbacks
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -69,7 +69,6 @@ public class WalletEntity {
         updatedAt = LocalDateTime.now();
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -134,7 +133,6 @@ public class WalletEntity {
         this.updatedAt = updatedAt;
     }
 
-    // Business methods
     public void deposit(BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) > 0) {
             this.balance = this.balance.add(amount);
