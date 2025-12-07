@@ -2,8 +2,10 @@ package io.equitrack.service;
 
 import io.equitrack.entity.ProfileEntity;
 import io.equitrack.entity.WalletEntity;
+import io.equitrack.entity.WalletActivityEntity; // NEW Import: Entity for logging
 import io.equitrack.repository.ProfileRepository;
 import io.equitrack.repository.WalletRepository;
+import io.equitrack.repository.WalletActivityRepository; // NEW Import: Repository for logging
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ public class WalletService {
 
     private final WalletRepository walletRepository;
     private final ProfileRepository profileRepository;
+    private final WalletActivityRepository walletActivityRepository; // NEW: Inject Wallet Activity Repository
 
     /**
      * Creates a new wallet for a profile
@@ -103,7 +106,18 @@ public class WalletService {
         }
 
         wallet.deposit(amount);
-        return walletRepository.save(wallet);
+        WalletEntity updatedWallet = walletRepository.save(wallet);
+
+        // NEW: Record the DEPOSIT activity log
+        WalletActivityEntity depositActivity = WalletActivityEntity.builder()
+                .wallet(updatedWallet)
+                .profile(updatedWallet.getProfile())
+                .amount(amount)
+                .type("DEPOSIT")
+                .build();
+        walletActivityRepository.save(depositActivity);
+
+        return updatedWallet;
     }
 
     /**
@@ -129,7 +143,18 @@ public class WalletService {
             throw new RuntimeException("Insufficient balance. Available: " + wallet.getBalance() + ", Requested: " + amount);
         }
 
-        return walletRepository.save(wallet);
+        WalletEntity updatedWallet = walletRepository.save(wallet);
+
+        // NEW: Record the WITHDRAW activity log
+        WalletActivityEntity withdrawActivity = WalletActivityEntity.builder()
+                .wallet(updatedWallet)
+                .profile(updatedWallet.getProfile())
+                .amount(amount.negate()) // Store as negative for clear history tracking
+                .type("WITHDRAW")
+                .build();
+        walletActivityRepository.save(withdrawActivity);
+
+        return updatedWallet;
     }
 
     /**
@@ -171,6 +196,28 @@ public class WalletService {
         // Save both wallets
         walletRepository.save(fromWallet);
         walletRepository.save(toWallet);
+
+        // NEW: Record two activities for the transfer (OUT and IN)
+
+        // 1. Record TRANSFER_OUT from source wallet
+        WalletActivityEntity transferOutActivity = WalletActivityEntity.builder()
+                .wallet(fromWallet)
+                .profile(fromWallet.getProfile())
+                .amount(amount.negate())
+                .type("TRANSFER_OUT")
+                .relatedWalletId(toWalletId)
+                .build();
+        walletActivityRepository.save(transferOutActivity);
+
+        // 2. Record TRANSFER_IN to destination wallet
+        WalletActivityEntity transferInActivity = WalletActivityEntity.builder()
+                .wallet(toWallet)
+                .profile(toWallet.getProfile())
+                .amount(amount)
+                .type("TRANSFER_IN")
+                .relatedWalletId(fromWalletId)
+                .build();
+        walletActivityRepository.save(transferInActivity);
     }
 
     /**
@@ -244,7 +291,6 @@ public class WalletService {
 
     /**
      * Delete a wallet permanently
-     * WARNING: This is a hard delete - cannot be undone
      * @param walletId The wallet ID
      * @throws RuntimeException if wallet not found
      */
@@ -252,6 +298,9 @@ public class WalletService {
         if (!walletRepository.existsById(walletId)) {
             throw new RuntimeException("Wallet not found with ID: " + walletId);
         }
+        // NOTE: The actual cascade deletion of WalletActivityEntity records is now
+        // handled automatically by the configuration in WalletEntity.java.
+
         walletRepository.deleteById(walletId);
     }
 
