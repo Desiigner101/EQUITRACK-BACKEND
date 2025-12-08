@@ -1,14 +1,16 @@
 package io.equitrack.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;  // ✅ ADDED
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tbl_wallets")
@@ -23,8 +25,16 @@ public class WalletEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", nullable = false)
-    @JsonBackReference("profile-wallets")  // ✅ FIXED
+    @JsonBackReference("profile-wallets")
     private ProfileEntity profile;
+
+    // ✅ FIXED:
+    // 1. cascade = CascadeType.ALL allows Deletion.
+    // 2. @JsonIgnore prevents the "Unknown Wallet" infinite loop error.
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @Builder.Default
+    private List<WalletActivityEntity> activities = new ArrayList<>();
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance;
@@ -48,6 +58,7 @@ public class WalletEntity {
         this.balance = BigDecimal.ZERO;
         this.currency = "PHP";
         this.isActive = true;
+        this.activities = new ArrayList<>();
     }
 
     public WalletEntity(ProfileEntity profile, BigDecimal balance, String walletType) {
@@ -56,6 +67,7 @@ public class WalletEntity {
         this.walletType = walletType;
         this.currency = "PHP";
         this.isActive = true;
+        this.activities = new ArrayList<>();
     }
 
     @PrePersist
@@ -68,6 +80,8 @@ public class WalletEntity {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    // --- FULL MANUAL GETTERS AND SETTERS ---
 
     public Long getId() {
         return id;
@@ -83,6 +97,14 @@ public class WalletEntity {
 
     public void setProfile(ProfileEntity profile) {
         this.profile = profile;
+    }
+
+    public List<WalletActivityEntity> getActivities() {
+        return activities;
+    }
+
+    public void setActivities(List<WalletActivityEntity> activities) {
+        this.activities = activities;
     }
 
     public BigDecimal getBalance() {
@@ -132,6 +154,8 @@ public class WalletEntity {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    // --- BUSINESS LOGIC METHODS ---
 
     public void deposit(BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) > 0) {
