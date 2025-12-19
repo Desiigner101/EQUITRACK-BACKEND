@@ -2,7 +2,7 @@
 
 A web application to track personal income and expenses built with Spring Boot and React.
 
-kadak
+kada
 ## Features
 
 - Add income and expenses
