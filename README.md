@@ -2,7 +2,7 @@
 
 A web application to track personal income and expenses built with Spring Boot and React.
 
-ka
+k
 ## Features
 
 - Add income and expenses
